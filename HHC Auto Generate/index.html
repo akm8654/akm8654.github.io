@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        div.main-rank {
+            background-color: lightsalmon;
+            border-color: darksalmon;
+            border-radius: 7px;
+            font-size: larger;
+            padding: 9px;
+            color: gray;
+            margin: auto;
+            width: 90%;
+            height:  75%;
+            text-align: center;
+        }
+
+        div.person-assigned {
+            color: white;
+            font-size: large;
+        }
+
+        .flex-container {
+            display: flex;
+            align-content: center;
+            flex-direction: row;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: auto auto auto auto auto auto auto;
+            column-gap: 2px;
+            row-gap: 3%;
+        }
+
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <meta charset="UTF-8">
+
+
+    <script type="text/javascript">
+        var CLIENT_ID = "889110302295-o3b42k65hdr00hff6nrcujre1risn2dd.apps.googleusercontent.com"
+        var API_KEY = "AIzaSyC8AKOJu5DVuEVVwO3S3t9x84rjg4lwI_A"
+        var SPREADSHEET_ID = "1Z9X-TiUZ3W46JT6rWxYJATi0BvcYx8uwuKmzHIbGYnE"
+
+        // Array of API discovery doc URLs for APIs used by the quickstart
+        var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+
+        // Authorization scopes required by the API; multiple scopes can be
+        // included, separated by spaces.
+        var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
+
+        /**
+         *  On load, called to load the auth2 library and API client library.
+         */
+        function handleClientLoad() {
+            gapi.load('client:auth2', initClient);
+        }
+
+        /**
+         *  Initializes the API client library and sets up sign-in state
+         *  listeners.
+         */
+        function initClient() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: DISCOVERY_DOCS,
+                scope: SCOPES
+            }).then(function () {
+                // Listen for sign-in state changes.
+                gapi.auth2.getAuthInstance();
+                updateLDP();
+            }, function(error) {
+                console.log(JSON.stringify(error, null, 2));
+            });
+        }
+
+        function updateLDP() {
+            console.log("spreadsheet ID: " + SPREADSHEET_ID);
+            var result;
+            gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: SPREADSHEET_ID,
+                range: 'HHC!A1:C24',
+            }).then(function (response) {
+                result = response.result;
+                for (i = 0; i < result.values.length; i++) {
+                    var row = result.values[i];
+                    var position = row[0];
+                    var last_name = row[1];
+                    var element = document.getElementById(position);
+                    console.log(element);
+                    if(element != null) {
+                        if(last_name.includes("Unassigned")){
+                            element.innerText = (last_name);
+                        } else {
+                            element.innerText = ("CDT " + last_name);
+                        }
+                    }
+                }
+            }, function(response) {
+                console.log('Error: ' + response.result.error.message);
+            });
+        }
+    </script>
+
+
+</head>
+<body>
+    <div class="grid-container">
+        <div class="main-rank" style="grid-row: 1/2; grid-column: 3/4">
+            <b>Battalion Commander (BC)</b>
+            <br><span class="person-assigned" id="BC">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 1/2; grid-column: 4/5">
+            <b>Command Sergeant Major (CSM)</b>
+            <br><span class="person-assigned" id="CSM">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 1/2; grid-column: 5/6">
+            <b>Executive Officer (XO)</b>
+            <br><span class="person-assigned" id="XO">Unassigned</span>
+        </div>
+        <!-- Column 1 -->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 1/2">
+            <b>Recruitment Operations Officer (ROO)</b>
+            <br><span class="person-assigned" id="ROO">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 1/2">
+            <b>Assistant ROO (A-ROO)</b>
+            <br><span class="person-assigned" id="A-ROO">Unassigned</span>
+        </div>
+        <!-- Column 2 -->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 2/3">
+            <b>S1 (Personnel)</b>
+            <br><span class="person-assigned" id="S1">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 2/3">
+            <b>Assistant S1 (AS1)</b>
+            <br><i><span class="person-assigned" id="AS1">Unassigned</span></i>
+        </div>
+        <div class="main-rank" style="grid-row: 4/5; grid-column: 2/3">
+            <b>Assistant S1 (AS1)</b>
+            <br><i><span class="person-assigned" id="AS1-1">Unassigned</span></i>
+        </div>
+        <!-- Column 3 -->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 3/4">
+            <b>S2/3 (Operations/Planning)</b>
+            <br><span class="person-assigned" id="S3/2">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 3/4">
+            <b>S3 Sergeant Major (S3 SGM)</b>
+            <br><span class="person-assigned" id="S3 SGM">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 4/5; grid-column: 3/4">
+            <b>Assistant S3 (AS3)</b>
+            <br><span class="person-assigned" id="AS3">Unassigned</span>
+        </div>
+        <!-- Column 4 -->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 4/5">
+            <b>S4 (Supply)</b>
+            <br><span class="person-assigned" id="S4">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 4/5">
+            <b>Assistant S4 (AS4)</b>
+            <br><span class="person-assigned" id="AS4">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 4/5; grid-column: 4/5">
+            <b>Assistant S4 (AS4)</b>
+            <br><i><span class="person-assigned" id="AS4-1">Unassigned</span></i>
+        </div>
+        <div class="main-rank" style="grid-row: 5/6; grid-column: 4/5">
+            <b>Assistant S4 (AS4)</b>
+            <br><i><span class="person-assigned" id="AS4-2">Unassigned</span></i>
+        </div>
+        <!-- Column 5-->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 5/6">
+            <b>S6 (Communications)</b>
+            <br><span class="person-assigned" id="S6">Unassigned</span>
+        </div>
+        <!-- Column 6-->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 6/7">
+            <b>MS3 Trainer (3T)</b>
+            <br><span class="person-assigned" id="3T">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 6/7">
+            <b>Assistant 3T (A3T)</b>
+            <br><span class="person-assigned" id="A3T">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 4/5; grid-column: 6/7">
+            <b>Assistant 3T (A3T)</b>
+            <br><span class="person-assigned" id="A3T-1">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 5/6; grid-column: 6/7">
+            <b>Assistant 3T (A3T)</b>
+            <br><span class="person-assigned" id="A3T-2">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 6/7; grid-column: 6/7">
+            <b>A3T/Geneseo Officer in Charge (OIC)</b>
+            <br><span class="person-assigned" id="A3T / SUNY Geneseo OIC">Unassigned</span>
+        </div>
+        <!-- Column 7 -->
+        <div class="main-rank" style="grid-row: 2/3; grid-column: 7/end">
+            <b>MS2 Trainer (2T) / Remedial PT</b>
+            <br><span class="person-assigned" id="2T/Remedial PT">Unassigned</span>
+        </div>
+        <div class="main-rank" style="grid-row: 3/4; grid-column: 7/end">
+            <b>Remedial PT</b>
+            <br><span class="person-assigned" id="Remedial PT">Unassigned</span>
+        </div>
+    </div>
+
+    <script async defer src="https://apis.google.com/js/api.js"
+            onload="this.onload=function(){};handleClientLoad()"
+            onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+</body>
+
+</html>
