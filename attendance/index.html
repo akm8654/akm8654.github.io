@@ -54,11 +54,23 @@
             text-align: center;
         }
     </style>
+
+    <script type="text/javascript">
+        function submitForm() {
+            console.log("Attempting to submit form.")
+            var form = document.getElementById("attendanceForm");
+            var radios;
+            if (form !== null) {
+                radios = form.getElementsByTagName("input");
+            }
+            console.log(radios);
+        }
+    </script>
 </head>
 
 <body>
 <button class="submitButton" id="authorize_button" style="display: none;">Sign-in</button>
-<pre id="content" style="white-space: pre-wrap;"></pre>
+<pre class="squad" id="content" style="white-space: pre-wrap;"></pre>
 
 <script>
     // Client ID and API key from the Developer Console
@@ -140,13 +152,13 @@
      * @param {string} message Text to be placed in pre element.
      */
     function appendPre(message) {
-        var pre = document.getElementById('content');
+        var pre = document.getElementById('attendanceForm');
         var textContent = document.createTextNode(message + '\n');
         pre.appendChild(textContent);
     }
 
     function addSection(sectionName) {
-        var pre = document.getElementById('content');
+        var pre = document.getElementById('attendanceForm');
         var newDiv = document.createElement('div');
         newDiv.setAttribute('class', "squad");
         newDiv.setAttribute('id', sectionName);
@@ -198,18 +210,16 @@
 
     function makeSubmitButton() {
         console.log("Creating submit button.")
-        var pre = document.getElementById("content");
+        var pre = document.getElementById("attendanceForm");
         var newDiv = document.createElement("div");
         newDiv.setAttribute("class", "buttonDiv");
         var newButton = document.createElement("BUTTON");
         newButton.setAttribute("class", "submitButton");
         newButton.innerHTML = "Submit Attendance";
+        newButton.setAttribute("type", '"button"')
+        newButton.addEventListener("click", submitForm);
         newDiv.appendChild(newButton);
         pre.appendChild(newDiv);
-    }
-
-    function submitForm() {
-
     }
 
     /**
@@ -243,19 +253,30 @@
             range: 'INFO!A12:B65'
         }).then(function (response) {
             var result = response.result;
+            var firstSGT = false;
             for (i = 0; i < result.values.length; i++) {
                 var row = result.values[i];
                 var position = row[0];
                 if (position.includes("1SG")) {
                     if (row[1] === last_name && position.includes("A")) {
-                        console.log("A Co 1SG found");
-                        addCompany("A Co")
+                        addCompany("A Co");
+                        firstSGT = true;
+                        break;
                     } else if (row[1] === last_name && position.includes("B")) {
-                        addCompany("B Co")
+                        addCompany("B Co");
+                        firstSGT = true;
+                        break;
                     } else if (row[1] === last_name && position.includes("C")) {
                         addCompany("C Co");
+                        firstSGT = true;
+                        break;
                     }
                 }
+            }
+            if (!firstSGT) {
+                console.log("No 1SG Found");
+                var pre = document.getElementById("content");
+                pre.innerText = "You are not currently 1SG and cannot update attendance.";
             }
         })
     }
@@ -275,6 +296,11 @@
             spreadsheetId: GAR_SPREADSHEET,
             range: company + '!A1:L40'
         }).then(function (response) {
+            var form = document.createElement("FORM");
+            form.setAttribute("id", "attendanceForm");
+            form.setAttribute("action", "javascript:;");
+            var pre = document.getElementById("content");
+            pre.appendChild(form);
             var result = response.result;
             let squad = "";
             for (i = 0; i < result.values.length; i++) {
@@ -296,7 +322,8 @@
                     }
                 }
             }
-            appendPre("")
+            appendPre("");
+            //form.onsubmit = submitForm();
             makeSubmitButton();
         })
     }
