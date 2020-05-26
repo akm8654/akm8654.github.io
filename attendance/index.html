@@ -23,6 +23,11 @@
             border-top: 2px dashed darkgray;
         }
 
+        .basicContent {
+            font-family: 'Quicksand', serif;
+            font-size: large;
+            color: #8c7854;
+        }
 
         .attOption {
             font-family: 'Quicksand', serif;
@@ -54,23 +59,11 @@
             text-align: center;
         }
     </style>
-
-    <script type="text/javascript">
-        function submitForm() {
-            console.log("Attempting to submit form.")
-            var form = document.getElementById("attendanceForm");
-            var radios;
-            if (form !== null) {
-                radios = form.getElementsByTagName("input");
-            }
-            console.log(radios);
-        }
-    </script>
 </head>
 
 <body>
 <button class="submitButton" id="authorize_button" style="display: none;">Sign-in</button>
-<pre class="squad" id="content" style="white-space: pre-wrap;"></pre>
+<pre class="basicContent" id="content" style="white-space: pre-wrap;"></pre>
 
 <script>
     // Client ID and API key from the Developer Console
@@ -82,11 +75,12 @@
 
     // Authorization scopes required by the API; multiple scopes can be
     // included, separated by spaces.
-    var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly" +
+    var SCOPES = "https://www.googleapis.com/auth/spreadsheets" +
         " https://www.googleapis.com/auth/userinfo.profile";
 
     var LDP_SPREADSHEET = "1HgidUhkBfzC8_q8vtLHoHEahzKQq4kL_1Ai-4yRpEZI";
     var GAR_SPREADSHEET = "1Z9X-TiUZ3W46JT6rWxYJATi0BvcYx8uwuKmzHIbGYnE";
+    var ATTENDANCE_SPREADSHEET = "1L6ZGAy7jhCCJt_K0drl5PSXlEPVPTRufgnevSmD2idk";
 
     var authorizeButton = document.getElementById('authorize_button');
 
@@ -157,6 +151,9 @@
         pre.appendChild(textContent);
     }
 
+    /**
+     * Creates a new squad html div.
+     */
     function addSection(sectionName) {
         var pre = document.getElementById('attendanceForm');
         var newDiv = document.createElement('div');
@@ -165,6 +162,9 @@
         pre.appendChild(newDiv);
     }
 
+    /**
+     * Creates a new header (The type that says what the squad is)
+     */
     function addHeader(elementTag, message) {
         var pre = document.getElementById(elementTag);
         var headerContent = document.createElement("HEADER");
@@ -172,13 +172,20 @@
         pre.appendChild(headerContent);
     }
 
+    /**
+     * Creates an attendance option (present, excused, oor, or tardy)
+     */
     function addAttendanceOption(divName, lastname) {
         console.log("Adding option to squad: " + divName + "For person: " + lastname);
         var newDiv = document.createElement('div');
         newDiv.setAttribute('class', "attOption");
         var fullName = "CDT " + lastname;
 
-        newDiv.innerHTML = fullName + ": \t\t" + htmlInput("Present", lastname) + htmlInput("Excused", lastname) +
+        var tab = "\t\t\t";
+        if (lastname.length >= 8 && !lastname.includes("Mitchell")) {
+            tab = "\t\t";
+        }
+        newDiv.innerHTML = fullName + ": " + tab + htmlInput("Present", lastname) + htmlInput("Excused", lastname) +
             htmlInput("Out Of Rank", lastname) + htmlInput("Tardy", lastname);
         document.getElementById(divName).appendChild(newDiv);
     }
@@ -191,11 +198,10 @@
      */
     function htmlInput(label, lastname) {
         var checked = "";
-        if(label === "Present")
-        {
+        if (label === "Present") {
             checked = "checked";
         }
-        return "<input type='radio' id='" + label + "' name='" + lastname + "' "+ checked +" value='" + label + "'>" +
+        return "<input type='radio' id='" + label + "' name='" + lastname + "' " + checked + " value='" + label + "'>" +
             htmlLabel(label) + "";
     }
 
@@ -206,6 +212,83 @@
      */
     function htmlLabel(label) {
         return "<label class='radioButt' for='" + label + "'>" + label + "</label>";
+    }
+
+    function getChecked(radios) {
+        let map = new Map();
+        for (let radio of radios) {
+            var checked = radio.checked;
+            if(checked) {
+                map.set(radio.getAttribute("name"), radio.getAttribute("value"));
+                console.log(radio.getAttribute("name") + " is marked " + radio.getAttribute("value"));
+            }
+        }
+        return map;
+    }
+
+    /**
+     * Used when the submit form button is pressed. (Not incredibly optimized)
+     */
+    function submitForm() {
+        console.log("Attempting to submit form.")
+        var form = document.getElementById("attendanceForm");
+        var radios;
+        if (form !== null) {
+            radios = form.getElementsByTagName("input");
+        }
+        var checkedNames = getChecked(radios);
+        gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: ATTENDANCE_SPREADSHEET,
+            range: 'FALL2020!D1:CC22'
+        }).then(function (response) {
+            var result = response.result;
+            var dateCol = 0;
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            today = mm + '/' + dd;
+            var row1 = result.values[0];
+            for (dateCol; dateCol < row1.length; dateCol++) {
+                if(row1[dateCol].includes(today)) {
+                    console.log("Date found in the " + dateCol + " spot");
+                    break;
+                }
+            }
+            for(let name of checkedNames.keys()) {
+                console.log("checking name: " + name);
+                for(i = 0; i < result.values.length; i++) {
+                    var checkName = result.values[i][0];//The name being checked
+                    if (checkName === undefined) {
+                        break;
+                    }
+                    if (checkName.includes(name)) {
+                        var colLetter = columnToLetter(dateCol + 4);
+                        var range = 'FALL2020!' + colLetter + (i+1)
+                        console.log("Submitting to the range: " + range);
+                        gapi.client.sheets.spreadsheets.values.update({
+                            spreadsheetId: ATTENDANCE_SPREADSHEET,
+                            range: range,
+                            valueInputOption: 'RAW',
+                            includeValuesInResponse: true,
+                            values: [ [ checkedNames.get(name).charAt(0) ] ]
+                        }).then(function(response) {
+                            console.log(response);
+                        })
+                    }
+                }
+            }
+        })
+    }
+
+    function columnToLetter(column) {
+        var temp, letter = '';
+        while (column > 0)
+        {
+            temp = (column - 1) % 26;
+            letter = String.fromCharCode(temp + 65) + letter;
+            column = (column - temp - 1) / 26;
+        }
+        return letter;
     }
 
     function makeSubmitButton() {
