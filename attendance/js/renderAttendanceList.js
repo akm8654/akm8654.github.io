@@ -372,7 +372,7 @@ function displayOptions() {
         if (!firstSGT) {
             console.log("No 1SG Found");
             var pre = document.getElementById("content");
-            pre.innerText = "You are not currently 1SG and cannot update attendance.";
+            pre.innerText = "You are not currently 1SG or are not the previous rotation's 1SG";
         }
     })
 }
