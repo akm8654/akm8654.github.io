@@ -214,6 +214,7 @@ function submitForm() {
                 }
             }
         }
+        window.location.replace("/submission.html")
     })
 }
 
