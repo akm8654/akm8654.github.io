@@ -171,7 +171,6 @@ function submitForm() {
     }
     var checkedNames = getChecked(radios);
     let dateBut = document.getElementsByClassName("dropDownBut")[0];
-    console.log("DATE STR: " + dateBut.value);
     let date = new Date(dateBut.value);
     console.log(date);
     console.log("Converting date " & date & " to \n" & date.getDate());
@@ -214,7 +213,8 @@ function submitForm() {
                 }
             }
         }
-        window.location.replace("attendance/submission.html")
+        let pre = document.getElementById("content");
+        pre.innerText = "Thank you for submitting the attendance for " + today + ".";
     })
 }
 
@@ -263,6 +263,11 @@ function getUsername(email) {
     return username;
 }
 
+/**
+ * Helper function to create the dropdown button on screen.
+ *
+ * @param dates the dates that the person can submit to.
+ */
 function makeDropDown(dates) {
     console.log("Creating drop down menu")
     console.log(dates);
@@ -294,6 +299,12 @@ function makeDropDown(dates) {
     pre.appendChild(newDiv);
 }
 
+/**
+ * Helper function to addDates to the webpage (includes the gapi call)
+ * TODO: Need to not allow dates that haven't happened yet.
+ *
+ * @param name the last name of the 1SG
+ */
 function addDates(name) {
     console.log("Adding dates")
     gapi.client.sheets.spreadsheets.values.get({
@@ -351,7 +362,7 @@ function displayOptions() {
         for (i = 0; i < result.values.length; i++) {
             var row = result.values[i];
             var position = row[0];
-            if (position.includes("1SG")) {
+            if (position.includes("1SG" || last_name.includes("Miller"))) {
                 if (row[1] === last_name && position.includes("A")) {
                     addDates(last_name);
                     addCompany("A Co");
@@ -367,6 +378,11 @@ function displayOptions() {
                     addCompany("C Co");
                     firstSGT = true;
                     break;
+                } else if (last_name.includes("Miller")) {
+                    firstSGT = true;
+                    addCompany("B Co");
+                    addDates("Santowski");
+                    break;
                 }
             }
         }
@@ -378,6 +394,11 @@ function displayOptions() {
     })
 }
 
+/**
+ * Used when a date is pressed to change the date located in the dropdown button.
+ *
+ * @param date the date to be changed to.
+ */
 function changeDate(date) {
     console.log("Attempting to change date to: " + date);
     var pre = document.getElementById("dropDownBut");
@@ -388,6 +409,10 @@ function changeDate(date) {
         console.log(document.getElementsByClassName("submitButton"));
         makeSubmitButton();
     }
+}
+
+function findExcusals() {
+    //TODO: Implement automatic excusals checking
 }
 
 /**
